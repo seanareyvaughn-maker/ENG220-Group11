@@ -1,0 +1,61 @@
+﻿type,FirmWorkFlowID,Name,CompleteName,Number,FiscalYear,Status,DateSubmitted,financialStatementOpinion,opinionForMajorFederalPrograms,ReportType
+n,452ccba2-7a8b-4183-b1e4-60c626b4916d,Cuba Independent Schools,Cuba Independent Schools,7020,2025,,2000-01-01,Unmodified,Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,491c29eb-755c-4b02-ba91-6d779ffb5985,Cuba Independent Schools,Cuba Independent Schools,7020,2025,,2000-01-01,Not Applicable,Unmodified,Separate Cover Single Audit
+n,EC8A1633-D8D0-4940-9FA3-8DF1FBA372D0,Cuba Independent Schools,Cuba Independent Schools,7020,2024,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+n,09A4B078-BF4E-42F2-9232-CEC0185BFF15,Cuba Independent Schools,Cuba Independent Schools,7020,2023,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+n,CAC95309-F1F8-4A01-AAF5-009453654F4A,Cuba Independent Schools,Cuba Independent Schools,7020,2022,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+n,CA482984-FF9C-4F36-BFA8-827E351A5C80,Cuba Independent Schools,Cuba Independent Schools,7020,2021,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+n,4C7BC427-3054-4DD9-BCA1-470BF04F0522,Cuba Independent Schools,Cuba Independent Schools,7020,2020,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+o,12871,Cuba Independent Schools,Cuba Independent Schools,7020,2019,,2000-01-01,,unmodified2,Financial Audit/Agreed-Upon Procedures
+o,12108,Cuba Independent Schools,Cuba Independent Schools,7020,2018,,2000-01-01,,unmodified2,Financial Audit/Agreed-Upon Procedures
+o,11329,Cuba Independent Schools,Cuba Independent Schools,7020,2017,,2000-01-01,unmodified,,Financial Audit/Agreed-Upon Procedures
+o,10342,Cuba Independent Schools,Cuba Independent Schools,7020,2016,,2000-01-01,,,Financial Audit/Agreed-Upon Procedures
+o,9627,Cuba Independent Schools,Cuba Independent Schools,7020,2015,,2000-01-01,,,Financial Audit/Agreed-Upon Procedures
+o,8855,Cuba Independent Schools,Cuba Independent Schools,7020,2014,,2000-01-01,,,
+o,8227,Cuba Independent Schools,Cuba Independent Schools,7020,2013,,2000-01-01,,,
+o,7443,Cuba Independent Schools,Cuba Independent Schools,7020,2012,,2000-01-01,,,
+o,6913,Cuba Independent Schools,Cuba Independent Schools,7020,2011,,2000-01-01,,,
+o,6220,Cuba Independent Schools,Cuba Independent Schools,7020,2010,,2000-01-01,,,
+o,6055,Cuba Independent Schools,Cuba Independent Schools,7020,2009,,2000-01-01,,,
+o,6049,Cuba Independent Schools,Cuba Independent Schools,7020,2008,,2000-01-01,,,
+o,3683,Cuba Independent Schools,Cuba Independent Schools,7020,2007,,2000-01-01,,,
+n,f6e2a034-6976-4c26-bc8e-3d99c3ee4030,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2025,,2000-01-01,Unmodified,Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,0B5DE5C0-FC0D-4C2A-8A9D-D37F825AA5BC,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2024,,2000-01-01,AUP - (No Opinion Provided),Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,A22ADC7E-2188-403C-9038-E65AE1CCABBF,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2023,,2000-01-01,AUP - (No Opinion Provided),Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,70FC38A3-8C1B-4F9F-B3B9-5572FCC62B79,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2022,,2000-01-01,AUP - (No Opinion Provided),Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,75490B09-1EA6-466C-BBA2-4C0750252DDF,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2021,,2000-01-01,AUP - (No Opinion Provided),Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,FD8E6670-EA41-408E-A135-F4DBDC3CCC0D,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2020,,2000-01-01,AUP - (No Opinion Provided),Not Applicable,Financial Audit/Agreed-Upon Procedures
+o,13124,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2019,,2000-01-01,,not_applicable,Financial Audit/Agreed-Upon Procedures
+o,12548,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2018,,2000-01-01,,not_applicable,Financial Audit/Agreed-Upon Procedures
+o,11536,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2017,,2000-01-01,agreed,,Financial Audit/Agreed-Upon Procedures
+o,10324,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2016,,2000-01-01,agreed,not_applicable,Financial Audit/Agreed-Upon Procedures
+o,10093,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2015,,2000-01-01,,,Financial Audit/Agreed-Upon Procedures
+o,9274,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2014,,2000-01-01,,,
+o,8447,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2013,,2000-01-01,,,
+o,7846,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2012,,2000-01-01,,,
+o,7329,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2011,,2000-01-01,,,
+o,7328,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2010,,2000-01-01,,,
+o,113,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2006,,2000-01-01,,,
+o,802,Cuba Soil & Water Conservation District,Cuba Soil & Water Conservation District,8013,2005,,2000-01-01,,,
+n,96dae1b6-33dd-4a1a-ad31-22639fd81498,Village of Cuba,Village of Cuba0,6046,2025,,2000-01-01,Special Audits,Not Applicable,Special Report
+n,568830b1-dc41-4bf8-ac1e-b9ac8995c8f0,Village of Cuba,Village of Cuba,6046,2025,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+n,C89614C8-B958-4556-8245-EFAE7297C11C,Village of Cuba,Village of Cuba,6046,2024,,2000-01-01,Unmodified,Unmodified,Financial Audit/Agreed-Upon Procedures
+n,97C4019C-0DF3-4B01-AC8C-BE1C77941937,Village of Cuba,Village of Cuba,6046,2023,,2000-01-01,Unmodified,Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,5D22986F-CFFF-4592-858B-A691891177A3,Village of Cuba,Village of Cuba,6046,2022,,2000-01-01,Unmodified,Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,9ECC23D8-406D-4487-AACA-3AAF414BE057,Village of Cuba,Village of Cuba,6046,2021,,2000-01-01,Unmodified,Not Applicable,Financial Audit/Agreed-Upon Procedures
+n,71A5280A-7F4A-4ECE-918D-B752A87329B0,Village of Cuba,Village of Cuba,6046,2020,,2000-01-01,Unmodified,Not Applicable,Financial Audit/Agreed-Upon Procedures
+o,13180,Village of Cuba,Village of Cuba,6046,2019,,2000-01-01,,unmodified2,Financial Audit/Agreed-Upon Procedures
+o,12373,Village of Cuba,Village of Cuba,6046,2018,,2000-01-01,,not_applicable,Financial Audit/Agreed-Upon Procedures
+o,11613,Village of Cuba,Village of Cuba,6046,2017,,2000-01-01,unmodified,,Financial Audit/Agreed-Upon Procedures
+o,10824,Village of Cuba,Village of Cuba,6046,2016,,2000-01-01,,,Financial Audit/Agreed-Upon Procedures
+o,9908,Village of Cuba,Village of Cuba,6046,2015,,2000-01-01,,,Financial Audit/Agreed-Upon Procedures
+o,9164,Village of Cuba,Village of Cuba,6046,2014,,2000-01-01,unmodified,not_applicable,Financial Audit/Agreed-Upon Procedures
+o,8475,Village of Cuba,Village of Cuba,6046,2013,,2000-01-01,,,
+o,8022,Village of Cuba,Village of Cuba,6046,2012,,2000-01-01,,,
+o,7955,Village of Cuba,Village of Cuba,6046,2011,,2000-01-01,,,
+o,7382,Village of Cuba,Village of Cuba,6046,2010,,2000-01-01,,,
+o,7381,Village of Cuba,Village of Cuba,6046,2009,,2000-01-01,,,
+o,7380,Village of Cuba,Village of Cuba,6046,2008,,2000-01-01,,,
+o,3782,Village of Cuba,Village of Cuba,6046,2007,,2000-01-01,,,
+o,666,Village of Cuba,Village of Cuba,6046,2006,,2000-01-01,,,
+o,1083,Village of Cuba,Village of Cuba,6046,2005,,2000-01-01,,,
