@@ -10,7 +10,7 @@ https://www.agacgfm.org/wp-content/uploads/legacy/ChapterWebsites/New-Mexico-Cha
 Loi's Sources:
 1. Village of Cuba Special Audit Findings
 https://www.cubanm.gov/may-11-2026-village-of-cuba-special-audit-findings/
-2. Audit submissions (have grants and rewards for Cuba): https://app.fac.gov/dissemination/search/
+2. Audit submissions (have grants and rewards for Cuba), I have included the CSV file of this in the folder named "fav.gov data": https://app.fac.gov/dissemination/search/
 3. USAspending (has grants, direct payments, and spending of Cuba): https://www.usaspending.gov/search?hash=caa4daffaa56669fa87eba12bfafcd39
 
 
