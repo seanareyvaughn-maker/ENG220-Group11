@@ -1,0 +1,5 @@
+The CSV files used here are too large to upload to github and can be downloaded here:
+https://www.fac.gov/data/download/current/
+
+currently the matlab file only looks at awards, findings, and general, so you only need to download those if you want to run this
+however, I may update it in the future to use the other files, so it is probably worth it to download all of them, though it does take a while
