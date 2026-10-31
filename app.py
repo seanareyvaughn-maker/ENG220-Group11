@@ -294,16 +294,120 @@ with doj:
     )
 
 with audits:
-    pending_section(
-        "Audit Findings",
-        "Explore documented findings supplied by the research team.",
-        [
-            "Entity and year filters",
-            "Finding descriptions",
-            "Source documents and page references",
-            "Visual summaries of approved classifications",
-        ],
+    from pathlib import Path
+
+    st.header("Audit Findings")
+    st.caption("Village of Cuba special consulting report")
+
+    data_path = (
+        Path(__file__).resolve().parent
+        / "data"
+        / "processed"
+        / "audit_findings_grouped.csv"
     )
+
+    if not data_path.exists():
+        st.info("Run prepare_audit_findings.py to create the dataset.")
+    else:
+        findings = pd.read_csv(data_path)
+
+        st.warning(
+            "Extraction preview: records have not been independently "
+            "verified. Categories may overlap. Amounts are not a "
+            "total of proven losses or theft."
+        )
+
+        group = st.selectbox(
+            "Testing group",
+            sorted(findings["testing_group"].unique()),
+        )
+
+        selected = findings[
+            findings["testing_group"] == group
+        ].copy()
+
+        show_supported = st.checkbox(
+            "Include properly supported transactions",
+            value=True,
+        )
+
+        if not show_supported:
+            selected = selected[
+                selected["record_type"] != "Supported transactions"
+            ]
+
+        sample_sizes = selected["sample_size"].unique()
+
+        if len(sample_sizes) == 1:
+            st.metric("Transactions in this tested sample", int(sample_sizes[0]))
+
+        st.caption(
+            "Percentages below are calculated from transaction counts, "
+            "not from dollar amounts. Categories are not additive."
+        )
+
+        if selected.empty:
+            st.info("No categories match the selected filters.")
+        else:
+            fig = px.bar(
+                selected,
+                x="transaction_percent_calculated",
+                y="label_candidate",
+                orientation="h",
+                color="record_type",
+                hover_data=[
+                    "transaction_count",
+                    "sample_size",
+                    "amount_usd",
+                    "pdf_page",
+                ],
+                labels={
+                    "transaction_percent_calculated": "Sample transactions (%)",
+                    "label_candidate": "Reported category",
+                    "record_type": "Record type",
+                    "amount_usd": "Reported amount ($)",
+                },
+                title=f"{group}: reported categories",
+            )
+
+            fig.update_xaxes(range=[0, 100], ticksuffix="%")
+            fig.update_layout(
+                height=max(400, len(selected) * 55),
+                yaxis={"autorange": "reversed"},
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.subheader("Extracted records")
+
+            st.dataframe(
+                selected[[
+                    "label_candidate",
+                    "amount_usd",
+                    "transaction_count",
+                    "sample_size",
+                    "transaction_percent_calculated",
+                    "pdf_page",
+                    "review_status",
+                ]],
+                hide_index=True,
+            )
+
+            with st.expander("Read supporting evidence"):
+                for _, row in selected.iterrows():
+                    st.write(
+                        f"{row['label_candidate']} "
+                        f"— PDF page {int(row['pdf_page'])}"
+                    )
+                    st.write(row["evidence"])
+                    st.divider()
+
+            st.download_button(
+                "Download selected records",
+                data=selected.to_csv(index=False).encode("utf-8-sig"),
+                file_name="selected_audit_findings.csv",
+                mime="text/csv",
+            )
 
 
 # Methodology placeholders
