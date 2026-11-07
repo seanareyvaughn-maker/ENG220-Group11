@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from pandas.errors import EmptyDataError, ParserError
 
 
 st.set_page_config(
@@ -60,7 +61,7 @@ with st.sidebar:
 
     demo_mode = st.toggle(
         "Enable interface demo",
-        value=True,
+        value=False,
         help=(
             "Show synthetic data to test charts and filters. "
             "These values are not research findings."
@@ -84,10 +85,10 @@ with st.sidebar:
     else:
         selected_years = []
         selected_categories = []
-        st.info("Real-data controls will be added after handoff.")
+        st.info("Audit filters are available in the Audit Findings tab.")
 
     st.divider()
-    st.caption("Development build · Research data pending")
+    st.caption("Development build · Audit extraction preview")
 
 
 # Header
@@ -105,7 +106,9 @@ if demo_mode:
     )
 else:
     st.info(
-        "Framework preview — Research datasets have not been connected."
+        "The Audit Findings tab includes an extraction preview. "
+        "Capital Appropriations and DOJ Releases are awaiting "
+        "teammate-approved data for dashboard integration."
     )
 
 
@@ -167,7 +170,7 @@ with overview:
             "Dashboard integration": [
                 "Awaiting approved financial output",
                 "Awaiting approved release dataset",
-                "Awaiting structured findings",
+                "Extraction preview implemented · Verification pending",
             ],
         }),
         hide_index=True,
@@ -307,9 +310,135 @@ with audits:
     )
 
     if not data_path.exists():
-        st.info("Run prepare_audit_findings.py to create the dataset.")
+        st.info(
+            "The audit preview dataset is missing: "
+            "data/processed/audit_findings_grouped.csv. "
+            "Check the required inputs and processing steps in "
+            "scripts/prepare_audit_findings.py."
+        )
     else:
-        findings = pd.read_csv(data_path)
+        try:
+            findings = pd.read_csv(data_path)
+        except (OSError, UnicodeError, EmptyDataError, ParserError) as exc:
+            st.error(
+                "The audit dataset could not be read. "
+                "Check that it is a valid, accessible CSV file."
+            )
+            st.code(str(exc), language="text")
+            st.stop()
+
+        required_columns = {
+            "testing_group",
+            "record_type",
+            "label_candidate",
+            "amount_usd",
+            "transaction_count",
+            "sample_size",
+            "transaction_percent_calculated",
+            "pdf_page",
+            "review_status",
+            "evidence",
+        }
+
+        missing_columns = required_columns - set(findings.columns)
+
+        if missing_columns:
+            st.error(
+                "The audit dataset is missing required columns: "
+                + ", ".join(sorted(missing_columns))
+            )
+            st.stop()
+
+        if findings.empty:
+            st.info("The audit dataset contains no records.")
+            st.stop()
+
+        text_columns = [
+            "testing_group",
+            "record_type",
+            "label_candidate",
+            "review_status",
+            "evidence",
+        ]
+
+        for column in text_columns:
+            findings[column] = (
+                findings[column]
+                .astype("string")
+                .fillna("")
+                .str.strip()
+            )
+
+        if findings[text_columns].eq("").any().any():
+            st.error(
+                "Some audit records are missing a testing group, "
+                "record type, label, review status, or supporting evidence. "
+                "Correct those records before displaying the preview."
+            )
+            st.stop()
+
+        numeric_columns = [
+            "amount_usd",
+            "transaction_count",
+            "sample_size",
+            "transaction_percent_calculated",
+            "pdf_page",
+        ]
+
+        for column in numeric_columns:
+            findings[column] = pd.to_numeric(
+                findings[column],
+                errors="coerce",
+            )
+
+        invalid_numeric = (
+            findings[numeric_columns].isna()
+            | findings[numeric_columns].isin(
+                [float("inf"), float("-inf")]
+            )
+        )
+
+        if invalid_numeric.any().any():
+            st.error(
+                "Some audit records contain missing or invalid numbers. "
+                "Check amounts, transaction counts, sample sizes, "
+                "percentages, and PDF page references."
+            )
+            st.stop()
+
+        integer_columns = [
+            "transaction_count",
+            "sample_size",
+            "pdf_page",
+        ]
+
+        if (findings[integer_columns] % 1 != 0).any().any():
+            st.error(
+                "Transaction counts, sample sizes, and PDF page "
+                "references must be whole numbers."
+            )
+            st.stop()
+
+        invalid_ranges = (
+            (findings["transaction_count"] < 0)
+            | (findings["sample_size"] <= 0)
+            | (
+                findings["transaction_count"]
+                > findings["sample_size"]
+            )
+            | (findings["pdf_page"] < 1)
+            | ~findings["transaction_percent_calculated"].between(
+                0, 100
+            )
+        )
+
+        if invalid_ranges.any():
+            st.error(
+                "Some audit records have invalid counts, sample sizes, "
+                "percentages, or PDF page references. "
+                "Review the processed dataset."
+            )
+            st.stop()
 
         st.warning(
             "Extraction preview: records have not been independently "
@@ -376,7 +505,7 @@ with audits:
                 yaxis={"autorange": "reversed"},
             )
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             st.subheader("Extracted records")
 
@@ -411,32 +540,103 @@ with audits:
 
 
 # Methodology placeholders
+# Data sources and methodology
 with methodology:
     st.header("Data & Methodology")
 
     with st.expander("Sources", expanded=True):
+        st.subheader("Audit Findings")
         st.write(
-            "Each connected dataset will list its original source, "
+            "The audit preview presents extracted records associated "
+            "with a Village of Cuba special consulting report."
+        )
+        st.write("Dashboard dataset:")
+        st.code(
+            "data/processed/audit_findings_grouped.csv",
+            language="text",
+        )
+        st.write(
+            "The Audit Findings tab includes PDF page references "
+            "and extracted supporting text for the displayed records."
+        )
+        st.info(
+            "Source documentation is incomplete. Before publication, "
+            "confirm the full report title, issuing organization, "
+            "report date, period covered, original report URL, "
             "collection date, and responsible team member."
         )
 
-    with st.expander("Data handoff"):
+        st.subheader("Capital Appropriations and DOJ Releases")
         st.write(
-            "Team members supply dashboard-ready data, column "
-            "definitions, units, and an explanation of their results. "
-            "The dashboard presents those outputs."
+            "These dashboard sections are awaiting teammate-approved "
+            "datasets. Their source documentation will be added "
+            "during integration."
+        )
+
+    with st.expander("Data processing and review"):
+        st.write(
+            "The dashboard reads a processed CSV of extracted audit "
+            "records and displays them by testing group. Users can "
+            "include or exclude records labeled as supported transactions."
+        )
+        st.write(
+            "The preview includes reported amounts, transaction counts, "
+            "sample sizes, calculated percentages, PDF page references, "
+            "and review-status fields."
+        )
+        st.warning(
+            "Extracted records have not been independently verified. "
+            "Check the original report before treating an extracted "
+            "label, amount, count, or quotation as confirmed."
         )
 
     with st.expander("Definitions and interpretation"):
         st.write(
-            "Financial exceptions, audit findings, allegations, "
-            "and adjudicated outcomes will be labeled separately."
+            "Transaction percentage = transaction count divided by "
+            "sample size, multiplied by 100."
+        )
+        st.write(
+            "These percentages describe transaction counts within "
+            "the selected testing group, not percentages of dollars."
+        )
+        st.write(
+            "Categories may overlap. Do not add category counts, "
+            "percentages, or amounts together as if they represent "
+            "distinct transactions."
+        )
+        st.write(
+            "Reported amounts are not a total of proven losses or theft. "
+            "Financial exceptions, audit findings, allegations, and "
+            "adjudicated outcomes must remain distinct."
+        )
+
+    with st.expander("Interface demo"):
+        st.write(
+            "The Interface Demo tab uses synthetic values created "
+            "only to test charts and filters. These values are not "
+            "research findings and are separate from the audit dataset."
+        )
+
+    with st.expander("Data handoff"):
+        st.write(
+            "Team members should supply dashboard-ready data, column "
+            "definitions, units, source references, and an explanation "
+            "of their results before integration."
         )
 
     with st.expander("Limitations"):
         st.write(
-            "Coverage gaps, missing records, and dataset-specific "
-            "limitations will be documented before publication."
+            "The audit preview is not a comprehensive assessment of "
+            "public finances or corruption in New Mexico."
+        )
+        st.write(
+            "Extraction errors, incomplete source documentation, "
+            "overlapping categories, and differences between tested "
+            "samples limit interpretation."
+        )
+        st.write(
+            "Capital Appropriations and DOJ Releases are not yet "
+            "connected to this dashboard."
         )
 
 
