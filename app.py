@@ -33,23 +33,6 @@ def make_demo_data():
     })
 
 
-def pending_section(title, description, planned_features):
-    st.header(title)
-    st.write(description)
-
-    with st.container(border=True):
-        st.info("Awaiting teammate-approved data.")
-
-        st.subheader("Planned dashboard features")
-        for feature in planned_features:
-            st.write(f"• {feature}")
-
-        st.caption(
-            "This section does not load, modify, or classify "
-            "teammates' current research files."
-        )
-
-
 demo = make_demo_data()
 
 
@@ -169,9 +152,9 @@ with overview:
                 "Audit Findings",
             ],
             "Dashboard integration": [
-                "Awaiting approved financial output",
-                "Awaiting approved release dataset",
-                "Extraction preview implemented · Verification pending",
+                "CSV explorer and screening rules connected",
+                "Candidate-release browser connected",
+                "Extraction preview connected · Verification pending",
             ],
         }),
         hide_index=True,
@@ -272,7 +255,7 @@ with demo_tab:
                 )
 
 
-# Research placeholders
+# Research dataset explorers
 with capital:
     st.header("Capital Appropriations")
     st.caption(
@@ -690,9 +673,10 @@ with doj:
 
     if not doj_path.exists():
         st.info(
-            "The DOJ dataset was not found at "
-            "thomas_doj/nm_financial_review.csv."
-        )
+            "Research preview — Capital Appropriations, DOJ Releases, "
+            "and Audit Findings are connected. Dataset review and "
+            "independent verification remain pending."
+    )
     else:
         try:
             releases = pd.read_csv(
@@ -1242,7 +1226,6 @@ with audits:
             )
 
 
-# Methodology placeholders
 # Data sources and methodology
 with methodology:
     st.header("Data & Methodology")
@@ -1269,11 +1252,37 @@ with methodology:
             "collection date, and responsible team member."
         )
 
-        st.subheader("Capital Appropriations and DOJ Releases")
+        st.subheader("Capital Appropriations")
         st.write(
-            "These dashboard sections are awaiting teammate-approved "
-            "datasets. Their source documentation will be added "
-            "during integration."
+            "The dashboard reads Sebastian's capital appropriations "
+            "CSV and applies screening conditions adapted from "
+            "his MATLAB analysis."
+        )
+        st.code(
+            "SebastiansStuffWIP/"
+            "nm-capital-appropriations-2026-10-13.csv",
+            language="text",
+        )
+        st.write(
+            "Original CSV values are preserved in the record viewer "
+            "and download. Screening flags identify records for review; "
+            "they do not establish accounting errors or misconduct."
+        )
+
+        st.subheader("DOJ Releases")
+        st.write(
+            "The dashboard reads Thomas's candidate-release review "
+            "CSV. Users can search collected text, filter records, "
+            "and open original release links."
+        )
+        st.code(
+            "thomas_doj/nm_financial_review.csv",
+            language="text",
+        )
+        st.write(
+            "Dataset counts represent CSV records, not unique cases "
+            "or verified corruption findings. Blank review fields "
+            "do not indicate approval or verification."
         )
 
     with st.expander("Data processing and review"):
@@ -1338,8 +1347,14 @@ with methodology:
             "samples limit interpretation."
         )
         st.write(
-            "Capital Appropriations and DOJ Releases are not yet "
-            "connected to this dashboard."
+            "Capital screening results require comparison with "
+            "Sebastian's analysis. DOJ records require relevance "
+            "and case-stage review. Audit extractions require "
+            "checking against the original report."
+        )
+        st.write(
+            "The datasets measure different things and should not "
+            "be combined into a single corruption count or loss total."
         )
 
 
