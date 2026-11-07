@@ -67,9 +67,11 @@ with st.sidebar:
             default=sorted(demo["category"].unique().tolist()),
         )
     else:
-        selected_years = []
-        selected_categories = []
-        st.info("Audit filters are available in the Audit Findings tab.")
+        st.info(
+            "Research preview — Capital Appropriations, DOJ Releases, "
+            "and Audit Findings are connected. Dataset review and "
+            "independent verification remain pending."
+        )
 
     st.divider()
     st.caption("Development build · Audit extraction preview")
@@ -673,10 +675,9 @@ with doj:
 
     if not doj_path.exists():
         st.info(
-            "Research preview — Capital Appropriations, DOJ Releases, "
-            "and Audit Findings are connected. Dataset review and "
-            "independent verification remain pending."
-    )
+            "The DOJ dataset was not found at "
+            "thomas_doj/nm_financial_review.csv."
+        )
     else:
         try:
             releases = pd.read_csv(
