@@ -67,10 +67,10 @@ with st.sidebar:
             default=sorted(demo["category"].unique().tolist()),
         )
     else:
+        selected_years = []
+        selected_categories = []
         st.info(
-            "Research preview — Capital Appropriations, DOJ Releases, "
-            "and Audit Findings are connected. Dataset review and "
-            "independent verification remain pending."
+            "Research filters are available inside each dataset tab."
         )
 
     st.divider()
@@ -92,9 +92,9 @@ if demo_mode:
     )
 else:
     st.info(
-        "The Audit Findings tab includes an extraction preview. "
-        "Capital Appropriations and DOJ Releases are awaiting "
-        "teammate-approved data for dashboard integration."
+        "Research preview — Capital Appropriations, DOJ Releases, "
+        "and Audit Findings are connected. Dataset review and "
+        "independent verification remain pending."
     )
 
 
@@ -133,8 +133,11 @@ with overview:
         with st.container(border=True):
             st.subheader("Dashboard status")
             st.write("Layout: In development")
-            st.write("Interactive interface: Available in demo mode")
-            st.write("Research datasets: Awaiting handoff")
+            st.write("Interface demo: Available with synthetic data")
+            st.write("Capital appropriations: CSV explorer connected")
+            st.write("DOJ releases: Candidate-release browser connected")
+            st.write("Audit findings: Extraction preview connected")
+            st.write("Data verification: Pending")
 
         with st.container(border=True):
             st.subheader("How to use this dashboard")
