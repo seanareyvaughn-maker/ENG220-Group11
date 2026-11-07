@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -285,19 +286,338 @@ with capital:
     )
 
 with doj:
-    pending_section(
-        "DOJ Releases",
-        "Explore the team's approved press-release dataset.",
-        [
-            "Publication-date filters",
-            "Title and text search",
-            "Source links and article details",
-            "Reviewed classifications when provided",
-        ],
+    st.header("DOJ Releases")
+    st.caption(
+        "Browse the team's collected candidate press releases "
+        "from the U.S. Department of Justice."
     )
 
+    st.warning(
+        "Research preview: keyword matches do not establish relevance "
+        "to public corruption or prove misconduct. Releases may describe "
+        "allegations, settlements, convictions, or other proceedings. "
+        "Consult the original source for context."
+    )
+
+    doj_path = (
+        Path(__file__).resolve().parent
+        / "thomas_doj"
+        / "nm_financial_review.csv"
+    )
+
+    if not doj_path.exists():
+        st.info(
+            "The DOJ dataset was not found at "
+            "thomas_doj/nm_financial_review.csv."
+        )
+    else:
+        try:
+            releases = pd.read_csv(
+                doj_path,
+                encoding="utf-8-sig",
+                dtype="string",
+            )
+        except (
+            OSError,
+            UnicodeError,
+            EmptyDataError,
+            ParserError,
+        ) as exc:
+            st.error("The DOJ dataset could not be read.")
+            st.code(str(exc), language="text")
+            releases = None
+
+        if releases is not None:
+            required_columns = {
+                "release_id",
+                "publication_date_utc",
+                "title",
+                "url",
+                "matched_keywords",
+                "article_text",
+            }
+
+            missing_columns = required_columns - set(releases.columns)
+
+            if missing_columns:
+                st.error(
+                    "The DOJ dataset is missing required columns: "
+                    + ", ".join(sorted(missing_columns))
+                )
+
+            elif releases.empty:
+                st.info("The DOJ dataset contains no releases.")
+
+            else:
+                releases = releases.fillna("")
+
+                for column in required_columns:
+                    releases[column] = releases[column].str.strip()
+
+                releases["publication_date"] = pd.to_datetime(
+                    releases["publication_date_utc"],
+                    errors="coerce",
+                    utc=True,
+                ).dt.date
+
+                releases["_display_title"] = releases["title"].replace(
+                    "",
+                    "(Untitled release)",
+                )
+
+                st.caption(
+                    "Counts below represent CSV records, not unique "
+                    "cases, defendants, or verified findings."
+                )
+
+                search = st.text_input(
+                    "Search titles and article text",
+                    placeholder="Enter a name, organization, or phrase",
+                    key="doj_search",
+                ).strip()
+
+                keyword_options = sorted({
+                    keyword.strip()
+                    for value in releases["matched_keywords"]
+                    for keyword in value.split(",")
+                    if keyword.strip()
+                })
+
+                selected_keywords = st.multiselect(
+                    "Matched keywords — include any selected keyword",
+                    options=keyword_options,
+                    key="doj_keywords",
+                )
+
+                filtered_releases = releases.copy()
+
+                if search:
+                    search_mask = (
+                        filtered_releases["title"].str.contains(
+                            search,
+                            case=False,
+                            regex=False,
+                            na=False,
+                        )
+                        | filtered_releases["article_text"].str.contains(
+                            search,
+                            case=False,
+                            regex=False,
+                            na=False,
+                        )
+                    )
+                    filtered_releases = filtered_releases[search_mask]
+
+                if selected_keywords:
+                    keyword_mask = filtered_releases[
+                        "matched_keywords"
+                    ].apply(
+                        lambda value: bool(
+                            set(selected_keywords)
+                            & {
+                                keyword.strip()
+                                for keyword in value.split(",")
+                                if keyword.strip()
+                            }
+                        )
+                    )
+                    filtered_releases = filtered_releases[keyword_mask]
+
+                valid_dates = releases["publication_date"].dropna()
+
+                if not valid_dates.empty:
+                    use_date_filter = st.checkbox(
+                        "Filter by publication date",
+                        value=False,
+                        key="doj_use_date_filter",
+                    )
+
+                    if use_date_filter:
+                        start_column, end_column = st.columns(2)
+
+                        with start_column:
+                            start_date = st.date_input(
+                                "Start date",
+                                value=valid_dates.min(),
+                                min_value=valid_dates.min(),
+                                max_value=valid_dates.max(),
+                                key="doj_start_date",
+                            )
+
+                        with end_column:
+                            end_date = st.date_input(
+                                "End date",
+                                value=valid_dates.max(),
+                                min_value=valid_dates.min(),
+                                max_value=valid_dates.max(),
+                                key="doj_end_date",
+                            )
+
+                        if start_date > end_date:
+                            st.warning(
+                                "Start date must be on or before end date."
+                            )
+                            filtered_releases = (
+                                filtered_releases.iloc[0:0]
+                            )
+                        else:
+                            date_mask = filtered_releases[
+                                "publication_date"
+                            ].apply(
+                                lambda value: (
+                                    False
+                                    if pd.isna(value)
+                                    else start_date <= value <= end_date
+                                )
+                            )
+                            filtered_releases = filtered_releases[
+                                date_mask
+                            ]
+
+                        st.caption(
+                            "Records with missing or invalid dates are "
+                            "excluded while the date filter is enabled."
+                        )
+                else:
+                    st.info(
+                        "No valid publication dates were found. "
+                        "Date filtering is unavailable."
+                    )
+
+                filtered_releases = filtered_releases.sort_values(
+                    "publication_date",
+                    ascending=False,
+                    na_position="last",
+                ).copy()
+
+                total_column, filtered_column = st.columns(2)
+                total_column.metric(
+                    "Records in dataset",
+                    len(releases),
+                )
+                filtered_column.metric(
+                    "Matching records",
+                    len(filtered_releases),
+                )
+
+                if filtered_releases.empty:
+                    st.info("No releases match the selected filters.")
+
+                else:
+                    st.subheader("Matching releases")
+
+                    st.dataframe(
+                        filtered_releases[[
+                            "publication_date_utc",
+                            "title",
+                            "matched_keywords",
+                            "url",
+                        ]],
+                        column_config={
+                            "publication_date_utc": "Publication date",
+                            "title": "Release title",
+                            "matched_keywords": "Matched keywords",
+                            "url": st.column_config.LinkColumn(
+                                "Original DOJ release",
+                                display_text="Read source",
+                            ),
+                        },
+                        hide_index=True,
+                        width="stretch",
+                    )
+
+                    st.subheader("Release details")
+
+                    detail_records = (
+                        filtered_releases.reset_index(drop=True)
+                    )
+
+                    selection = st.selectbox(
+                        "Choose a release",
+                        options=list(range(len(detail_records))),
+                        format_func=lambda index: (
+                            f"{detail_records.iloc[index]['publication_date_utc']} "
+                            f"— {detail_records.iloc[index]['_display_title']}"
+                        ),
+                    )
+
+                    article = detail_records.iloc[selection]
+
+                    st.subheader(article["_display_title"])
+                    st.write(
+                        "Publication date:",
+                        article["publication_date_utc"]
+                        or "Not provided",
+                    )
+                    st.write(
+                        "Matched keywords:",
+                        article["matched_keywords"]
+                        or "Not provided",
+                    )
+
+                    source_url = article["url"]
+                    if source_url.startswith(
+                        ("https://www.justice.gov/", "https://justice.gov/")
+                    ):
+                        st.link_button(
+                            "Open original DOJ release",
+                            source_url,
+                        )
+                    else:
+                        st.caption(
+                            "A valid justice.gov source link "
+                            "is not available for this record."
+                        )
+
+                    review_columns = {
+                        "relevance": "Relevance",
+                        "misconduct_category": "Misconduct category",
+                        "case_stage": "Case stage",
+                        "review_notes": "Review notes",
+                    }
+
+                    with st.expander("Team review fields"):
+                        st.caption(
+                            "Blank fields mean no value was supplied; "
+                            "they do not indicate approval or verification."
+                        )
+
+                        for column, label in review_columns.items():
+                            value = article.get(column, "")
+                            st.write(
+                                f"{label}: "
+                                f"{value if value else 'Not provided'}"
+                            )
+
+                    with st.expander(
+                        "Read collected article text",
+                        expanded=True,
+                    ):
+                        st.text(
+                            article["article_text"]
+                            or "No article text was supplied."
+                        )
+
+                    export_columns = [
+                        column
+                        for column in releases.columns
+                        if column not in {
+                            "publication_date",
+                            "_display_title",
+                        }
+                    ]
+
+                    st.download_button(
+                        "Download filtered DOJ records",
+                        data=filtered_releases[
+                            export_columns
+                        ].to_csv(index=False).encode("utf-8-sig"),
+                        file_name="filtered_doj_releases.csv",
+                        mime="text/csv",
+                        key="doj_download",
+                    )
+
 with audits:
-    from pathlib import Path
 
     st.header("Audit Findings")
     st.caption("Village of Cuba special consulting report")
