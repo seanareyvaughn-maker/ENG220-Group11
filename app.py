@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -273,31 +274,733 @@ with demo_tab:
 
 # Research placeholders
 with capital:
-    pending_section(
-        "Capital Appropriations",
-        "Explore financial outputs supplied by the analysis team.",
-        [
-            "Filters based on the approved dataset",
-            "Interactive financial comparisons",
-            "Record details and source references",
-            "Filtered table and CSV download",
-        ],
+    st.header("Capital Appropriations")
+    st.caption(
+        "Explore Sebastian's capital appropriations dataset "
+        "and records flagged by his analysis rules."
     )
+
+    st.warning(
+        "Research preview: flags identify records for review, "
+        "not proven errors, losses, or corruption. Reauthorizations "
+        "and parent/sub-appropriation relationships may affect "
+        "interpretation. Flag categories may overlap."
+    )
+
+    capital_path = (
+        Path(__file__).resolve().parent
+        / "SebastiansStuffWIP"
+        / "nm-capital-appropriations-2026-10-13.csv"
+    )
+
+    def render_capital_data():
+        if not capital_path.exists():
+            st.info(
+                "The capital appropriations CSV was not found "
+                "in SebastiansStuffWIP."
+            )
+            return
+
+        try:
+            capital_data = pd.read_csv(
+                capital_path,
+                encoding="utf-8-sig",
+                dtype="string",
+            )
+        except (
+            OSError,
+            UnicodeError,
+            EmptyDataError,
+            ParserError,
+        ) as exc:
+            st.error("The capital appropriations CSV could not be read.")
+            st.code(str(exc), language="text")
+            return
+
+        required_columns = {
+            "Appropriation ID",
+            "Project Title",
+            "Entity",
+            "City",
+            "County",
+            "Appropriation Year",
+            "Appropriation Amount",
+            "Reauthorized Amount",
+            "Amount Expended",
+            "Amount Remaining",
+        }
+
+        missing_columns = required_columns - set(capital_data.columns)
+
+        if missing_columns:
+            st.error(
+                "Missing required columns: "
+                + ", ".join(sorted(missing_columns))
+            )
+            return
+
+        if capital_data.empty:
+            st.info("The appropriations dataset contains no records.")
+            return
+
+        # Preserve original CSV values for display and download.
+        source_columns = capital_data.columns.tolist()
+        capital_data[source_columns] = (
+            capital_data[source_columns].fillna("")
+        )
+
+        numeric_fields = {
+            "_appropriated": "Appropriation Amount",
+            "_reauthorized": "Reauthorized Amount",
+            "_expended": "Amount Expended",
+            "_remaining": "Amount Remaining",
+        }
+
+        for internal_name, source_name in numeric_fields.items():
+            capital_data[internal_name] = pd.to_numeric(
+                capital_data[source_name].str.strip(),
+                errors="coerce",
+            ).replace(
+                [float("inf"), float("-inf")],
+                float("nan"),
+            )
+
+        appropriated = capital_data["_appropriated"]
+        reauthorized = capital_data["_reauthorized"]
+        expended = capital_data["_expended"]
+        remaining = capital_data["_remaining"]
+
+        # Reproduce Sebastian's MATLAB screening conditions.
+        complete_core_values = (
+            capital_data[[
+                "_appropriated",
+                "_expended",
+                "_remaining",
+            ]]
+            .notna()
+            .all(axis=1)
+        )
+
+        difference = appropriated - (expended + remaining)
+
+        capital_data["Flag: amount mismatch"] = (
+            complete_core_values
+            & difference.abs().gt(0.01)
+        )
+
+        any_negative = (
+            appropriated.lt(0)
+            | expended.lt(0)
+            | remaining.lt(0)
+        )
+
+        capital_data["Flag: negative values"] = (
+            any_negative
+            & ~reauthorized.ge(expended)
+        )
+
+        capital_data["Flag: zero appropriation with activity"] = (
+            appropriated.eq(0)
+            & (expended.gt(0) | remaining.gt(0))
+            & ~reauthorized.gt(0)
+        )
+
+        capital_data["Missing/invalid numeric input"] = (
+            capital_data[list(numeric_fields)]
+            .isna()
+            .any(axis=1)
+        )
+
+        flag_columns = [
+            "Flag: amount mismatch",
+            "Flag: negative values",
+            "Flag: zero appropriation with activity",
+        ]
+
+        capital_data["Any analysis flag"] = (
+            capital_data[flag_columns].any(axis=1)
+        )
+
+        capital_data["Calculated amount difference"] = (
+            difference.where(complete_core_values)
+        )
+
+        st.caption(
+            "Filters below affect the record counts, table, "
+            "project chart, and CSV download."
+        )
+
+        search = st.text_input(
+            "Search appropriation ID, project, entity, or city",
+            key="capital_search",
+        ).strip()
+
+        counties = sorted({
+            value.strip()
+            for value in capital_data["County"]
+            if value.strip()
+        })
+
+        years = sorted({
+            value.strip()
+            for value in capital_data["Appropriation Year"]
+            if value.strip()
+        })
+
+        county_column, year_column = st.columns(2)
+
+        with county_column:
+            selected_counties = st.multiselect(
+                "Counties — leave empty for all",
+                options=counties,
+                key="capital_counties",
+            )
+
+        with year_column:
+            selected_years = st.multiselect(
+                "Appropriation years — leave empty for all",
+                options=years,
+                key="capital_years",
+            )
+
+        view_options = {
+            "All records": None,
+            "Any analysis flag": "Any analysis flag",
+            "Amount mismatch": "Flag: amount mismatch",
+            "Negative values": "Flag: negative values",
+            "Zero appropriation with activity": (
+                "Flag: zero appropriation with activity"
+            ),
+            "Missing/invalid numeric input": (
+                "Missing/invalid numeric input"
+            ),
+        }
+
+        selected_view = st.selectbox(
+            "Record view",
+            options=list(view_options),
+            key="capital_record_view",
+        )
+
+        selected = capital_data.copy()
+
+        if search:
+            search_mask = pd.Series(False, index=selected.index)
+
+            for column in [
+                "Appropriation ID",
+                "Project Title",
+                "Entity",
+                "City",
+            ]:
+                search_mask |= selected[column].str.contains(
+                    search,
+                    case=False,
+                    regex=False,
+                    na=False,
+                )
+
+            selected = selected[search_mask]
+
+        if selected_counties:
+            selected = selected[
+                selected["County"].str.strip().isin(selected_counties)
+            ]
+
+        if selected_years:
+            selected = selected[
+                selected["Appropriation Year"]
+                .str.strip()
+                .isin(selected_years)
+            ]
+
+        flag_filter = view_options[selected_view]
+        if flag_filter is not None:
+            selected = selected[selected[flag_filter]]
+
+        first, second, third = st.columns(3)
+        first.metric("Matching CSV records", len(selected))
+        second.metric(
+            "Records with analysis flags",
+            int(selected["Any analysis flag"].sum()),
+        )
+        third.metric(
+            "Records with numeric-input issues",
+            int(selected["Missing/invalid numeric input"].sum()),
+        )
+
+        st.caption(
+            "Counts represent CSV records, not necessarily unique "
+            "projects. No statewide dollar total is calculated here."
+        )
+
+        with st.expander("How Sebastian's screening rules work"):
+            st.write(
+                "Amount mismatch: appropriation amount differs from "
+                "expended plus remaining by more than $0.01, with "
+                "all three values present."
+            )
+            st.write(
+                "Negative values: at least one of appropriated, "
+                "expended, or remaining is negative, excluding records "
+                "where reauthorized amount is greater than or equal "
+                "to expended amount."
+            )
+            st.write(
+                "Zero appropriation with activity: appropriation is "
+                "zero and expended or remaining is positive, excluding "
+                "records with a positive reauthorized amount."
+            )
+            st.write(
+                "These conditions reproduce the MATLAB script's "
+                "screening logic. They do not validate the underlying "
+                "accounting assumptions."
+            )
+            st.write(
+                "Blank or nonnumeric inputs are not replaced with zero. "
+                "Records with those inputs need separate review; an "
+                "unflagged record is not necessarily verified."
+            )
+
+        if selected.empty:
+            st.info("No appropriation records match these filters.")
+            return
+
+        st.subheader("Matching appropriation records")
+
+        displayed_columns = [
+            "Appropriation ID",
+            "Project Title",
+            "Entity",
+            "City",
+            "County",
+            "Appropriation Year",
+            "Appropriation Amount",
+            "Reauthorized Amount",
+            "Amount Expended",
+            "Amount Remaining",
+            *flag_columns,
+            "Missing/invalid numeric input",
+            "Calculated amount difference",
+        ]
+
+        st.dataframe(
+            selected[displayed_columns],
+            hide_index=True,
+            width="stretch",
+        )
+
+        st.subheader("Individual record details")
+
+        detail_records = selected.reset_index(drop=True)
+
+        record_index = st.selectbox(
+            "Choose an appropriation record",
+            options=list(range(len(detail_records))),
+            format_func=lambda index: (
+                str(index + 1)
+                + " · "
+                + str(detail_records.iloc[index]["Appropriation ID"])
+                + " — "
+                + str(detail_records.iloc[index]["Project Title"])
+            ),
+        )
+
+        record = detail_records.iloc[record_index]
+
+        comparison = pd.DataFrame({
+            "Measure": [
+                "Appropriated",
+                "Reauthorized",
+                "Expended",
+                "Remaining",
+            ],
+            "Amount": [
+                record["_appropriated"],
+                record["_reauthorized"],
+                record["_expended"],
+                record["_remaining"],
+            ],
+        }).dropna(subset=["Amount"])
+
+        if not comparison.empty:
+            chart = px.bar(
+                comparison,
+                x="Measure",
+                y="Amount",
+                color="Measure",
+                title="Reported amounts for the selected CSV record",
+                labels={"Amount": "Amount ($)"},
+            )
+            chart.update_yaxes(tickprefix="$")
+            chart.update_layout(showlegend=False)
+            st.plotly_chart(chart, width="stretch")
+
+        with st.expander("View all original fields"):
+            st.dataframe(
+                pd.DataFrame({
+                    "Field": source_columns,
+                    "Original value": [
+                        record[column] for column in source_columns
+                    ],
+                }),
+                hide_index=True,
+                width="stretch",
+            )
+
+        export_columns = [
+            *source_columns,
+            *flag_columns,
+            "Any analysis flag",
+            "Missing/invalid numeric input",
+            "Calculated amount difference",
+        ]
+
+        st.download_button(
+            "Download filtered appropriations",
+            data=selected[export_columns]
+            .to_csv(index=False)
+            .encode("utf-8-sig"),
+            file_name="filtered_capital_appropriations.csv",
+            mime="text/csv",
+            key="capital_download",
+        )
+
+    render_capital_data()
 
 with doj:
-    pending_section(
-        "DOJ Releases",
-        "Explore the team's approved press-release dataset.",
-        [
-            "Publication-date filters",
-            "Title and text search",
-            "Source links and article details",
-            "Reviewed classifications when provided",
-        ],
+    st.header("DOJ Releases")
+    st.caption(
+        "Browse the team's collected candidate press releases "
+        "from the U.S. Department of Justice."
     )
 
+    st.warning(
+        "Research preview: keyword matches do not establish relevance "
+        "to public corruption or prove misconduct. Releases may describe "
+        "allegations, settlements, convictions, or other proceedings. "
+        "Consult the original source for context."
+    )
+
+    doj_path = (
+        Path(__file__).resolve().parent
+        / "thomas_doj"
+        / "nm_financial_review.csv"
+    )
+
+    if not doj_path.exists():
+        st.info(
+            "The DOJ dataset was not found at "
+            "thomas_doj/nm_financial_review.csv."
+        )
+    else:
+        try:
+            releases = pd.read_csv(
+                doj_path,
+                encoding="utf-8-sig",
+                dtype="string",
+            )
+        except (
+            OSError,
+            UnicodeError,
+            EmptyDataError,
+            ParserError,
+        ) as exc:
+            st.error("The DOJ dataset could not be read.")
+            st.code(str(exc), language="text")
+            releases = None
+
+        if releases is not None:
+            required_columns = {
+                "release_id",
+                "publication_date_utc",
+                "title",
+                "url",
+                "matched_keywords",
+                "article_text",
+            }
+
+            missing_columns = required_columns - set(releases.columns)
+
+            if missing_columns:
+                st.error(
+                    "The DOJ dataset is missing required columns: "
+                    + ", ".join(sorted(missing_columns))
+                )
+
+            elif releases.empty:
+                st.info("The DOJ dataset contains no releases.")
+
+            else:
+                releases = releases.fillna("")
+
+                for column in required_columns:
+                    releases[column] = releases[column].str.strip()
+
+                releases["publication_date"] = pd.to_datetime(
+                    releases["publication_date_utc"],
+                    errors="coerce",
+                    utc=True,
+                ).dt.date
+
+                releases["_display_title"] = releases["title"].replace(
+                    "",
+                    "(Untitled release)",
+                )
+
+                st.caption(
+                    "Counts below represent CSV records, not unique "
+                    "cases, defendants, or verified findings."
+                )
+
+                search = st.text_input(
+                    "Search titles and article text",
+                    placeholder="Enter a name, organization, or phrase",
+                    key="doj_search",
+                ).strip()
+
+                keyword_options = sorted({
+                    keyword.strip()
+                    for value in releases["matched_keywords"]
+                    for keyword in value.split(",")
+                    if keyword.strip()
+                })
+
+                selected_keywords = st.multiselect(
+                    "Matched keywords — include any selected keyword",
+                    options=keyword_options,
+                    key="doj_keywords",
+                )
+
+                filtered_releases = releases.copy()
+
+                if search:
+                    search_mask = (
+                        filtered_releases["title"].str.contains(
+                            search,
+                            case=False,
+                            regex=False,
+                            na=False,
+                        )
+                        | filtered_releases["article_text"].str.contains(
+                            search,
+                            case=False,
+                            regex=False,
+                            na=False,
+                        )
+                    )
+                    filtered_releases = filtered_releases[search_mask]
+
+                if selected_keywords:
+                    keyword_mask = filtered_releases[
+                        "matched_keywords"
+                    ].apply(
+                        lambda value: bool(
+                            set(selected_keywords)
+                            & {
+                                keyword.strip()
+                                for keyword in value.split(",")
+                                if keyword.strip()
+                            }
+                        )
+                    )
+                    filtered_releases = filtered_releases[keyword_mask]
+
+                valid_dates = releases["publication_date"].dropna()
+
+                if not valid_dates.empty:
+                    use_date_filter = st.checkbox(
+                        "Filter by publication date",
+                        value=False,
+                        key="doj_use_date_filter",
+                    )
+
+                    if use_date_filter:
+                        start_column, end_column = st.columns(2)
+
+                        with start_column:
+                            start_date = st.date_input(
+                                "Start date",
+                                value=valid_dates.min(),
+                                min_value=valid_dates.min(),
+                                max_value=valid_dates.max(),
+                                key="doj_start_date",
+                            )
+
+                        with end_column:
+                            end_date = st.date_input(
+                                "End date",
+                                value=valid_dates.max(),
+                                min_value=valid_dates.min(),
+                                max_value=valid_dates.max(),
+                                key="doj_end_date",
+                            )
+
+                        if start_date > end_date:
+                            st.warning(
+                                "Start date must be on or before end date."
+                            )
+                            filtered_releases = (
+                                filtered_releases.iloc[0:0]
+                            )
+                        else:
+                            date_mask = filtered_releases[
+                                "publication_date"
+                            ].apply(
+                                lambda value: (
+                                    False
+                                    if pd.isna(value)
+                                    else start_date <= value <= end_date
+                                )
+                            )
+                            filtered_releases = filtered_releases[
+                                date_mask
+                            ]
+
+                        st.caption(
+                            "Records with missing or invalid dates are "
+                            "excluded while the date filter is enabled."
+                        )
+                else:
+                    st.info(
+                        "No valid publication dates were found. "
+                        "Date filtering is unavailable."
+                    )
+
+                filtered_releases = filtered_releases.sort_values(
+                    "publication_date",
+                    ascending=False,
+                    na_position="last",
+                ).copy()
+
+                total_column, filtered_column = st.columns(2)
+                total_column.metric(
+                    "Records in dataset",
+                    len(releases),
+                )
+                filtered_column.metric(
+                    "Matching records",
+                    len(filtered_releases),
+                )
+
+                if filtered_releases.empty:
+                    st.info("No releases match the selected filters.")
+
+                else:
+                    st.subheader("Matching releases")
+
+                    st.dataframe(
+                        filtered_releases[[
+                            "publication_date_utc",
+                            "title",
+                            "matched_keywords",
+                            "url",
+                        ]],
+                        column_config={
+                            "publication_date_utc": "Publication date",
+                            "title": "Release title",
+                            "matched_keywords": "Matched keywords",
+                            "url": st.column_config.LinkColumn(
+                                "Original DOJ release",
+                                display_text="Read source",
+                            ),
+                        },
+                        hide_index=True,
+                        width="stretch",
+                    )
+
+                    st.subheader("Release details")
+
+                    detail_records = (
+                        filtered_releases.reset_index(drop=True)
+                    )
+
+                    selection = st.selectbox(
+                        "Choose a release",
+                        options=list(range(len(detail_records))),
+                        format_func=lambda index: (
+                            f"{detail_records.iloc[index]['publication_date_utc']} "
+                            f"— {detail_records.iloc[index]['_display_title']}"
+                        ),
+                    )
+
+                    article = detail_records.iloc[selection]
+
+                    st.subheader(article["_display_title"])
+                    st.write(
+                        "Publication date:",
+                        article["publication_date_utc"]
+                        or "Not provided",
+                    )
+                    st.write(
+                        "Matched keywords:",
+                        article["matched_keywords"]
+                        or "Not provided",
+                    )
+
+                    source_url = article["url"]
+                    if source_url.startswith(
+                        ("https://www.justice.gov/", "https://justice.gov/")
+                    ):
+                        st.link_button(
+                            "Open original DOJ release",
+                            source_url,
+                        )
+                    else:
+                        st.caption(
+                            "A valid justice.gov source link "
+                            "is not available for this record."
+                        )
+
+                    review_columns = {
+                        "relevance": "Relevance",
+                        "misconduct_category": "Misconduct category",
+                        "case_stage": "Case stage",
+                        "review_notes": "Review notes",
+                    }
+
+                    with st.expander("Team review fields"):
+                        st.caption(
+                            "Blank fields mean no value was supplied; "
+                            "they do not indicate approval or verification."
+                        )
+
+                        for column, label in review_columns.items():
+                            value = article.get(column, "")
+                            st.write(
+                                f"{label}: "
+                                f"{value if value else 'Not provided'}"
+                            )
+
+                    with st.expander(
+                        "Read collected article text",
+                        expanded=True,
+                    ):
+                        st.text(
+                            article["article_text"]
+                            or "No article text was supplied."
+                        )
+
+                    export_columns = [
+                        column
+                        for column in releases.columns
+                        if column not in {
+                            "publication_date",
+                            "_display_title",
+                        }
+                    ]
+
+                    st.download_button(
+                        "Download filtered DOJ records",
+                        data=filtered_releases[
+                            export_columns
+                        ].to_csv(index=False).encode("utf-8-sig"),
+                        file_name="filtered_doj_releases.csv",
+                        mime="text/csv",
+                        key="doj_download",
+                    )
+
 with audits:
-    from pathlib import Path
 
     st.header("Audit Findings")
     st.caption("Village of Cuba special consulting report")
