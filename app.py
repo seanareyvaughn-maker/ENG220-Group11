@@ -109,6 +109,7 @@ overview, demo_tab, capital, doj, audits, methodology = st.tabs([
 
 
 # Overview
+# Overview
 with overview:
     st.header("Project Overview")
 
@@ -118,33 +119,33 @@ with overview:
         with st.container(border=True):
             st.subheader("Research question")
             st.write(
-                "The group's approved research question "
-                "will appear here."
+                "How can publicly available financial records, audit "
+                "findings, and Department of Justice press releases "
+                "help identify potential financial irregularities "
+                "and accountability concerns in New Mexico?"
             )
 
         with st.container(border=True):
             st.subheader("Project scope")
             st.write(
-                "The study area, time period, and included "
-                "records will be documented here."
+                "This project examines New Mexico public financial "
+                "records through three research areas: capital "
+                "appropriations, audit findings, and Department of "
+                "Justice press releases. We use data collection, "
+                "screening rules, and interactive visualizations to "
+                "explore spending records, identify discrepancies, "
+                "and review documented accountability issues."
             )
-
-    with right:
-        with st.container(border=True):
-            st.subheader("Dashboard status")
-            st.write("Layout: In development")
-            st.write("Interface demo: Available with synthetic data")
-            st.write("Capital appropriations: CSV explorer connected")
-            st.write("DOJ releases: Candidate-release browser connected")
-            st.write("Audit findings: Extraction preview connected")
-            st.write("Data verification: Pending")
-
-        with st.container(border=True):
-            st.subheader("How to use this dashboard")
             st.write(
-                "Choose a tab to explore a research area. "
-                "The sidebar currently controls only the "
-                "Interface Demo tab."
+                "Coverage depends on the records collected for each "
+                "dataset; the sources do not necessarily cover the "
+                "same time period, entities, or cases."
+            )
+            st.caption(
+                "Flagged records and keyword matches are starting "
+                "points for further investigation, not proof of "
+                "corruption. Findings must be checked against "
+                "the original sources."
             )
 
     st.subheader("Research sections")
