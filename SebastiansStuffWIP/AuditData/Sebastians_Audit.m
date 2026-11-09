@@ -1,10 +1,17 @@
 %eins = readtable("additional_eins.csv");
 %ueis = readtable("additional_ueis.csv");
 %plans = readtable("corrective_action_plans.csv");
-awards = readtable("federal_awards.csv");
+if ~exist("awards", "var")
+    awards = readtable("federal_awards.csv");
+end
 %findingsText = readtable("findings_text.csv");
-findings = readtable("findings.csv");
-general = readtable("general.csv");
+if ~exist("findings", "var")
+    findings = readtable("findings.csv");
+end
+
+if ~exist("general", "var")
+    general = readtable("general.csv");
+end
 %sefa = readtable("notes_to_sefa.csv");
 %passthrough = readtable("passthrough.csv");
 
@@ -34,69 +41,139 @@ programsCubaFindings = unique(string(AwardsCubaFindings.federal_program_name));
 programsCubaMaterialWeakness = unique(string(AwardsCubaMaterialWeakness.federal_program_name));
 
 %Programs affected
-programs = string(AwardsCubaFindings.federal_program_name);
-mwPrograms = unique(string(AwardsCubaMaterialWeakness.federal_program_name));
-
-programs = strtrim(programs);
+programs = strtrim(string(AwardsCubaFindings.federal_program_name));
 programs(ismissing(programs) | programs == "") = "<missing>";
 
-[grp, programNames] = findgroups(programs);
-programCounts = splitapply(@numel, programs, grp);
+mwPrograms = strtrim(string(AwardsCubaMaterialWeakness.federal_program_name));
+mwPrograms(ismissing(mwPrograms) | mwPrograms == "") = "<missing>";
 
-isMW = ismember(programNames, mwPrograms);
+[grpAll, programNames] = findgroups(programs);
+programCounts = splitapply(@numel, programs, grpAll);
+
+[grpMW, mwNames] = findgroups(mwPrograms);
+mwCountsByProgram = splitapply(@numel, mwPrograms, grpMW);
+
+mwCounts = zeros(size(programNames));
+[tf, loc] = ismember(programNames, mwNames);
+mwCounts(tf) = mwCountsByProgram(loc(tf));
+
+nonMWCounts = programCounts - mwCounts;
 
 [programCounts, order] = sort(programCounts, "descend");
 programNames = programNames(order);
-isMW = isMW(order);
+mwCounts = mwCounts(order);
+nonMWCounts = nonMWCounts(order);
 
 programCounts = flipud(programCounts);
 programNames = flipud(programNames);
-isMW = flipud(isMW);
+mwCounts = flipud(mwCounts);
+nonMWCounts = flipud(nonMWCounts);
 
 x = categorical(programNames);
 x = reordercats(x, programNames);
 
-figure
-h1 = barh(x, programCounts, "FaceColor", [0.75 0.75 0.75], "EdgeColor", "none");
-hold on
-h2 = barh(x(isMW), programCounts(isMW), "FaceColor", [0.85 0.2 0.2], "EdgeColor", "none");
-hold off
+figure(1)
+clf
+
+h = barh(x, [mwCounts nonMWCounts], "stacked", "EdgeColor", "none");
+ax = gca;
+ax.TickLabelInterpreter = "none";
+h(1).FaceColor = [0.85 0.2 0.2];
+h(2).FaceColor = [0.75 0.75 0.75];
 
 xlabel("Number of Cuba findings")
 ylabel("Affected Federal program")
 title("Audit Findings in Cuba")
-legend([h1 h2], {"All programs", "Material weakness"}, "Location", "best")
+legend(h, {"Material weakness", "Non-material weakness"}, "Location", "best")
 grid on
 
 % ---- Expenditure chart ----
-expendedVar = "amount_expended";   % change this if your column name differs
+expendedVar = "amount_expended";   
+
+programs = strtrim(string(AwardsCubaFindings.federal_program_name));
+programs(ismissing(programs) | programs == "") = "<missing>";
+
+mwPrograms = strtrim(string(AwardsCubaMaterialWeakness.federal_program_name));
+mwPrograms(ismissing(mwPrograms) | mwPrograms == "") = "<missing>";
 
 expended = double(AwardsCubaFindings.(expendedVar));
+mwExpendedData = double(AwardsCubaMaterialWeakness.(expendedVar));
 
-[grp, programNames] = findgroups(programs);
-programExpended = splitapply(@(x) sum(x, "omitnan"), expended, grp);
+[grpAll, programNames] = findgroups(programs);
+totalExpended = splitapply(@(x) sum(x, "omitnan"), expended, grpAll);
 
-isMW = ismember(programNames, mwPrograms);
+[grpMW, mwNames] = findgroups(mwPrograms);
+mwExpendedByProgram = splitapply(@(x) sum(x, "omitnan"), mwExpendedData, grpMW);
 
-[programExpended, order] = sort(programExpended, "descend");
+mwExpended = zeros(size(programNames));
+[tf, loc] = ismember(programNames, mwNames);
+mwExpended(tf) = mwExpendedByProgram(loc(tf));
+
+nonMWExpended = totalExpended - mwExpended;
+
+[totalExpended, order] = sort(totalExpended, "descend");
 programNames = programNames(order);
-isMW = isMW(order);
+mwExpended = mwExpended(order);
+nonMWExpended = nonMWExpended(order);
 
-programExpended = flipud(programExpended);
+totalExpended = flipud(totalExpended);
 programNames = flipud(programNames);
-isMW = flipud(isMW);
+mwExpended = flipud(mwExpended);
+nonMWExpended = flipud(nonMWExpended);
 
 x = categorical(programNames);
 x = reordercats(x, programNames);
 
-figure
-h1 = barh(x, programExpended, "FaceColor", [0.75 0.75 0.75], "EdgeColor", "none");
-hold on
-h2 = barh(x(isMW), programExpended(isMW), "FaceColor", [0.85 0.2 0.2], "EdgeColor", "none");
-hold off
+figure(2)
+clf
+
+h = barh(x, [mwExpended nonMWExpended], "stacked", "EdgeColor", "none");
+ax = gca;
+ax.TickLabelInterpreter = "none";
+h(1).FaceColor = [0.85 0.2 0.2];
+h(2).FaceColor = [0.75 0.75 0.75];
 
 xlabel("Total expended amount")
 ylabel("Affected Federal program")
 title("Cuba Findings by Expended Amount")
-legend([h1 h2], {"All programs", "Material weakness"}, "Location", "best")
+legend(h, {"Material weakness", "Non-material weakness"}, "Location", "best")
 grid on
+
+% ---- Findings count by time window ----
+currentYear = max([NMFindings.audit_year; CubaFindings.audit_year], [], "omitnan");
+
+periods = [1 5 10];
+periodLabels = ["Past 1 year", "Past 5 years", "Past 10 years"];
+
+nmCounts = zeros(size(periods));
+cubaCounts = zeros(size(periods));
+
+for k = 1:numel(periods)
+    yearStart = currentYear - periods(k) + 1;
+
+    nmCounts(k) = sum(NMFindings.audit_year >= yearStart & NMFindings.audit_year <= currentYear);
+    cubaCounts(k) = sum(CubaFindings.audit_year >= yearStart & CubaFindings.audit_year <= currentYear);
+end
+
+figure(3)
+clf
+
+x = categorical(periodLabels, periodLabels);
+h = bar(x, [nmCounts(:) cubaCounts(:)], "grouped");
+
+h(1).FaceColor = [0.2 0.5 0.85];
+h(2).FaceColor = [0.85 0.2 0.2];
+
+set(gca, "YScale", "log")
+
+xlabel("Time window")
+ylabel("Number of findings (log scale)")
+title("Findings in New Mexico vs Cuba")
+legend(h, {"New Mexico", "Cuba"}, "Location", "best")
+grid on
+
+%todo:
+%1 year, 5 years, 10 years
+
+
+%state, county,
