@@ -1,0 +1,4 @@
+The appropriations file creates a map using data downloaded from 
+https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2026&layergroup=Counties+%28and+equivalent%29
+
+This data is unfortunately too big to upload to github, so please download it before running the file
