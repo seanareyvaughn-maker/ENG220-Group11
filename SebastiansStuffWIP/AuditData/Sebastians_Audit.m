@@ -72,7 +72,7 @@ nonMWCounts = flipud(nonMWCounts);
 x = categorical(programNames);
 x = reordercats(x, programNames);
 
-figure(1)
+figure(10)
 clf
 
 h = barh(x, [mwCounts nonMWCounts], "stacked", "EdgeColor", "none");
@@ -124,7 +124,7 @@ nonMWExpended = flipud(nonMWExpended);
 x = categorical(programNames);
 x = reordercats(x, programNames);
 
-figure(2)
+figure(20)
 clf
 
 h = barh(x, [mwExpended nonMWExpended], "stacked", "EdgeColor", "none");
@@ -155,7 +155,7 @@ for k = 1:numel(periods)
     cubaCounts(k) = sum(CubaFindings.audit_year >= yearStart & CubaFindings.audit_year <= currentYear);
 end
 
-figure(3)
+figure(30)
 clf
 
 x = categorical(periodLabels, periodLabels);
