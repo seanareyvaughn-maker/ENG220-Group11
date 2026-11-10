@@ -111,34 +111,9 @@ if any(zeroMask)
     grid(ax, 'on')
 end
 
-% Heatmap with separate state total column
-stateTotal = sum(totals, 2, "omitnan");
 
-tab = uitab(tg, 'Title', 'Year by County');
-gl = uigridlayout(tab, [1 2]);
-gl.ColumnWidth = {'1x', 140};
-gl.RowHeight = {'1x'};
-gl.Padding = [0 0 0 0];
-gl.ColumnSpacing = 10;
 
-% Main county heatmap
-p1 = uipanel(gl);
-h = heatmap(p1, string(countyList), string(yearList), totals);
-h.Title = "Amount Appropriated by Year and County";
-h.XLabel = "County";
-h.YLabel = "Year";
-h.CellLabelColor = "none";
-h.Colormap = parula;
 
-% State total heatmap
-p2 = uipanel(gl);
-h2 = heatmap(p2, "State Total", string(yearList), stateTotal);
-h2.Title = "";
-h2.XLabel = "";
-h2.YLabel = "";
-h2.CellLabelColor = "none";
-h2.Colormap = parula;
-h2.ColorLimits = h.ColorLimits;
 
 
 % Map with year selector
@@ -162,6 +137,36 @@ yearList = sort(unique(yr(validMapMask)));
 
 countyTotals = accumarray([yearGroup, countyGroup], appropriated(validMapMask), ...
     [numel(yearList), numel(countyKeyList)], @sum, 0);
+
+% Heatmap with separate state total column
+stateTotal = sum(countyTotals, 2, "omitnan");
+
+tab = uitab(tg, 'Title', 'Year by County');
+gl = uigridlayout(tab, [1 2]);
+gl.ColumnWidth = {'1x', 140};
+gl.RowHeight = {'1x'};
+gl.Padding = [0 0 0 0];
+gl.ColumnSpacing = 10;
+
+% Main county heatmap
+p1 = uipanel(gl);
+h = heatmap(p1, string(countyKeyList), string(yearList), countyTotals);
+
+h.Title = "Amount Appropriated by Year and County";
+h.XLabel = "County";
+h.YLabel = "Year";
+h.CellLabelColor = "none";
+h.Colormap = parula;
+
+% State total heatmap
+p2 = uipanel(gl);
+h2 = heatmap(p2, "State Total", string(yearList), stateTotal);
+h2.Title = "";
+h2.XLabel = "";
+h2.YLabel = "";
+h2.CellLabelColor = "none";
+h2.Colormap = parula;
+h2.ColorLimits = h.ColorLimits;
 
 shpFiles = dir("*county*.shp");
 if isempty(shpFiles)
