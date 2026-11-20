@@ -1,7 +1,0 @@
-https://www.justice.gov/usao-nm/pr?search_api_fulltext=embezzl&start_date=&end_date=&sort_by=field_date
-
-https://www.justice.gov/usao-nm/pr?search_api_fulltext=corruption&start_date=&end_date=&sort_by=field_date
-
-justice.gov looking at press releases. thinking about creating a web crawler to truly analyze this thingy 
-
-Thomas 
