@@ -23,9 +23,5 @@ Research sources for ENG 220 Group 11 (financial transparency and corruption in 
 |---|---|---|
 | [State Ethics Commission settlement announcement (May 28, 2025)](https://www.sec.nm.gov/wp-content/uploads/2025/05/2025-05-28-SEC-Settlement-Announcement-w-Herrera.pdf) | Press release (PDF). | Jovan |
 | [Cuba mayor fined for ethics violation tied to his gas station](https://www.koat.com/article/new-mexico-cuba-mayor-fined-ethics-gas-station/65050703) | KOAT news article. | Jovan |
-| Cuba village finances under fire in state audit | KOAT news article. **URL needed.** | Jovan |
-| New Mexico audit finds 'unprecedented' fraud, waste and abuse in Cuba village finances (May 27, 2026) | News article. **Outlet and URL needed.** | Jovan |
 
-## Still to do
-- Add the missing links above (two news articles).
-- Record the access date for each source, so readers know when the data was collected.
+
