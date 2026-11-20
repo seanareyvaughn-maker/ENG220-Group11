@@ -40,14 +40,35 @@ and filters. It is disabled by default and is separate from the
 research datasets.
 
 ## Repository Structure
-- `app.py` — Main Streamlit dashboard
-- `requirements.txt` — Python dependencies
-- `data/raw/` — Collected audit-index data
-- `data/processed/` — Processed audit findings
-- `scripts/` — Data collection, extraction, and processing scripts
-- `sources/` — Research references and supporting source materials
-- `SebastiansStuffWIP/` — Capital appropriations data and MATLAB analysis
-- `thomas_doj/` — DOJ research, collected records, and processing scripts
+```
+app.py                 Streamlit dashboard
+requirements.txt       Python dependencies
+data/
+  raw/                 Collected, unmodified inputs
+    appropriations/    NM capital appropriations CSV
+    audits/            Cuba audit index (JSON/CSV)
+    doj/               DOJ press-release collections
+    fac/               FAC summary export
+  interim/doj/         Intermediate DOJ screening output
+  processed/           Cleaned datasets the dashboard reads
+src/
+  audits/              Audit index, PDF extraction, findings, FAC figures
+  doj/                 DOJ release collection, screening, and export
+  nm_audits/           Search/scan State Auditor reports for DOJ cases
+matlab/                MATLAB analysis (appropriations and audit findings)
+figures/               Charts and screenshots from the analysis
+docs/                  Project report, sources, and data notes
+```
+
+### Data pipeline
+- **Audits:** `src/audits/collect_audit_index.py` -> `extract_audit_pdfs.py` ->
+  `build_findings.py` -> `prepare_audit_findings.py` -> `data/processed/audit_findings_grouped.csv`
+- **DOJ:** `src/doj/collect_doj_releases.py` -> `screen_nm_articles.py` ->
+  `export_nm_review.py` -> `data/processed/nm_financial_review.csv`
+- **Appropriations:** `data/raw/appropriations/` CSV, analyzed in `matlab/unmatched_appropriations.m`
+
+Run scripts from the repository root, for example `python src/doj/export_nm_review.py`.
+Large files that are not in the repository are described in `docs/data_notes.md`.
 
 ## Setup
 From the repository's root directory, create a virtual environment:
@@ -77,8 +98,8 @@ python -m streamlit run app.py
 
 ## Dashboard Data Inputs
 The dashboard reads these repository files:
-- `SebastiansStuffWIP/nm-capital-appropriations-2026-10-13.csv`
-- `thomas_doj/nm_financial_review.csv`
+- `data/raw/appropriations/nm-capital-appropriations-2026-10-13.csv`
+- `data/processed/nm_financial_review.csv`
 - `data/processed/audit_findings_grouped.csv`
 
 The dashboard reads existing outputs; launching it does not run the
@@ -120,4 +141,4 @@ dashboard. Source verification, dataset review, and final documentation
 remain in progress.
 
 ## Sources
-See `sources/` and the dashboard's Data & Methodology tab.
+See `docs/sources.md` and the dashboard's Data & Methodology tab.

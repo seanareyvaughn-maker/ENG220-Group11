@@ -1,4 +1,7 @@
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
 
 keywords = [
     "fraud",
@@ -14,7 +17,7 @@ keywords = [
     "public funds"
 ]
 
-with open("nm_collection_progress.json", "r", encoding="utf-8") as file:
+with open(ROOT / "data" / "raw" / "doj" / "nm_collection_progress.json", "r", encoding="utf-8") as file:
     progress = json.load(file)
 
 candidates = []
@@ -42,9 +45,9 @@ for article in progress["articles"]:
         print("URL:", article.get("url", ""))
         print()
 
-with open("nm_financial_candidates.json", "w", encoding="utf-8") as file:
+with open(ROOT / "data" / "interim" / "doj" / "nm_financial_candidates.json", "w", encoding="utf-8") as file:
     json.dump(candidates, file, indent=2, ensure_ascii=False)
 
 print("NM releases screened:", len(progress["articles"]))
 print("Potential financial misconduct releases:", len(candidates))
-print("Saved to nm_financial_candidates.json")
+print("Saved to data/interim/doj/nm_financial_candidates.json")

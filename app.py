@@ -278,7 +278,9 @@ with capital:
 
     capital_path = (
         Path(__file__).resolve().parent
-        / "SebastiansStuffWIP"
+        / "data"
+        / "raw"
+        / "appropriations"
         / "nm-capital-appropriations-2026-10-13.csv"
     )
 
@@ -286,7 +288,7 @@ with capital:
         if not capital_path.exists():
             st.info(
                 "The capital appropriations CSV was not found "
-                "in SebastiansStuffWIP."
+                "in data/raw/appropriations."
             )
             return
 
@@ -673,14 +675,15 @@ with doj:
 
     doj_path = (
         Path(__file__).resolve().parent
-        / "thomas_doj"
+        / "data"
+        / "processed"
         / "nm_financial_review.csv"
     )
 
     if not doj_path.exists():
         st.info(
             "The DOJ dataset was not found at "
-            "thomas_doj/nm_financial_review.csv."
+            "data/processed/nm_financial_review.csv."
         )
     else:
         try:
@@ -1006,7 +1009,7 @@ with audits:
             "The audit preview dataset is missing: "
             "data/processed/audit_findings_grouped.csv. "
             "Check the required inputs and processing steps in "
-            "scripts/prepare_audit_findings.py."
+            "src/audits/prepare_audit_findings.py."
         )
     else:
         try:
@@ -1264,7 +1267,7 @@ with methodology:
             "his MATLAB analysis."
         )
         st.code(
-            "SebastiansStuffWIP/"
+            "data/raw/appropriations/"
             "nm-capital-appropriations-2026-10-13.csv",
             language="text",
         )
@@ -1281,7 +1284,7 @@ with methodology:
             "and open original release links."
         )
         st.code(
-            "thomas_doj/nm_financial_review.csv",
+            "data/processed/nm_financial_review.csv",
             language="text",
         )
         st.write(

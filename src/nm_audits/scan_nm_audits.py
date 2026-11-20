@@ -178,7 +178,7 @@ def main():
         description="Search candidate audit PDFs for Stapleton case terms."
     )
     parser.add_argument("input_csv")
-    parser.add_argument("--output", default="nm_audit_text_results.csv")
+    parser.add_argument("--output", default="data/processed/nm_audits/nm_audit_text_results.csv")
     parser.add_argument(
         "--limit",
         type=int,
