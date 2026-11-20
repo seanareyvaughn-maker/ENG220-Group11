@@ -2,7 +2,7 @@ import csv
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 INPUT = ROOT / "data" / "processed" / "pdf_extraction"
 OUTPUT = ROOT / "data" / "processed" / "audit_findings_candidates.csv"
 

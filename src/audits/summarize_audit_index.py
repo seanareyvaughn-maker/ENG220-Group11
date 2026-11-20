@@ -1,12 +1,12 @@
 from pathlib import Path
 import pandas as pd
 
-root = Path(__file__).resolve().parents[1]
+root = Path(__file__).resolve().parents[2]
 output = root / "data" / "processed"
 output.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(
-    root / "data" / "raw" / "cuba_audit_index.csv",
+    root / "data" / "raw" / "audits" / "cuba_audit_index.csv",
     encoding="utf-8-sig",
     dtype={"FirmWorkFlowID": "string", "Number": "string"},
 )

@@ -1,8 +1,11 @@
 import csv
 import json
+from pathlib import Path
 from datetime import datetime, timezone
 from html import unescape
 from html.parser import HTMLParser
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 # Convert HTML article bodies into readable text.
@@ -39,7 +42,7 @@ def readable_date(value):
         return ""
 
 
-with open("nm_financial_candidates.json", "r", encoding="utf-8") as file:
+with open(ROOT / "data" / "interim" / "doj" / "nm_financial_candidates.json", "r", encoding="utf-8") as file:
     candidates = json.load(file)
 
 columns = [
@@ -60,7 +63,7 @@ columns = [
 ]
 
 with open(
-    "nm_financial_review.csv",
+    ROOT / "data" / "processed" / "nm_financial_review.csv",
     "w",
     newline="",
     encoding="utf-8-sig"
@@ -89,4 +92,4 @@ with open(
         })
 
 print("Candidate releases exported:", len(candidates))
-print("Saved to nm_financial_review.csv")
+print("Saved to data/processed/nm_financial_review.csv")

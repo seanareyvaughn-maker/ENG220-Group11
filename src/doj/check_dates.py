@@ -1,7 +1,10 @@
 import json
+from pathlib import Path
 from datetime import datetime, timezone
 
-with open("nm_collection_progress.json", encoding="utf-8") as file:
+ROOT = Path(__file__).resolve().parents[2]
+
+with open(ROOT / "data" / "raw" / "doj" / "nm_collection_progress.json", encoding="utf-8") as file:
     progress = json.load(file)
 
 articles = progress["articles"]

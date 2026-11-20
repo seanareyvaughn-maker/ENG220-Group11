@@ -127,8 +127,8 @@ def main():
     parser.add_argument("input_csv", help="Your existing DOJ review CSV")
     parser.add_argument(
         "--output",
-        default="nm_audit_candidates.csv",
-        help="Output filename",
+        default="data/processed/nm_audits/nm_audit_candidates.csv",
+        help="Output path (run from the repository root)",
     )
     args = parser.parse_args()
 

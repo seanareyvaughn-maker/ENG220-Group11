@@ -6,7 +6,7 @@ from pathlib import Path
 import pdfplumber
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 INPUT = ROOT / "data" / "pdfs"
 OUTPUT = ROOT / "data" / "processed" / "pdf_extraction"
 

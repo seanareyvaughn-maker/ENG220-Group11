@@ -18,8 +18,8 @@ params = {
     "summary": "1",
 }
 
-root = Path(__file__).resolve().parents[1]
-output = root / "data" / "raw"
+root = Path(__file__).resolve().parents[2]
+output = root / "data" / "raw" / "audits"
 output.mkdir(parents=True, exist_ok=True)
 
 response = requests.get(URL, params=params, timeout=60)
